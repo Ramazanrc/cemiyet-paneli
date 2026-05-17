@@ -129,7 +129,7 @@ if 'ekstra_kuranlar' not in st.session_state: st.session_state['ekstra_kuranlar'
 
 def menuyu_degistir(yeni_isim): st.session_state['secili_menu'] = yeni_isim
 
-# --- ZİKİRMATİK MODÜLÜ (Kurşun Geçirmez Efsane Tasarım) ---
+# --- ZİKİRMATİK MODÜLÜ (Efsanevi Tasarım Kesin Çözüm) ---
 def zikirmatik_bileseni(anahtar="ana"):
     st.markdown("<div class='bilgi-kutusu'><h3 style='color:#1e7145; margin-top:0px;'>🔢 Zikirmatik</h3><p style='color:gray; font-size:14px; margin-bottom:0px;'>Hedefe ulaştığınızda sayaç sıfırlanır ve alt kısımda attığınız tur sayısı belirtilir.</p></div>", unsafe_allow_html=True)
     
@@ -152,7 +152,7 @@ def zikirmatik_bileseni(anahtar="ana"):
     tur = st.session_state['zikirmatik_tur']
     yuzde = int((sayac / hedef) * 100) if hedef > 0 else 0
     
-    # CSS: Canlı Sunucuda Asla Bozulmayan Özel Hedefleyici
+    # CSS: Hatanın sebebi olan eksik bağlantı giderildi
     st.markdown(f"""
     <style>
         div[data-testid="stElementContainer"]:has(.z-anchor-{anahtar}) + div[data-testid="stElementContainer"] button[kind="primary"],
@@ -178,11 +178,14 @@ def zikirmatik_bileseni(anahtar="ana"):
     
     col_s1, col_center, col_s2 = st.columns([1, 2, 1])
     with col_center:
+        # 1. Zırhı taşıyan HTML çapasını yerleştiriyoruz
         st.markdown(f'<div class="z-anchor-{anahtar}"></div>', unsafe_allow_html=True)
+        
         btn_icerik = f"👆 {sayac} / {hedef}"
         if tur > 0: btn_icerik += f"\n⭐ {tur}"
             
-        if st.button(btn_icerik, key=f"z_btn_{anahtar}", use_container_width=True):
+        # 2. HATA BURADAYDI! Butonun kimliğini "primary" yapmayı unuttuğum için CSS işlemiyordu. Düzeltildi!
+        if st.button(btn_icerik, key=f"z_btn_{anahtar}", type="primary", use_container_width=True):
             st.session_state['zikirmatik_sayac'] += 1
             if st.session_state['zikirmatik_sayac'] >= hedef:
                 st.toast(f"Tebrikler! {hedef} Barajı Geçildi.", icon="🎉")
