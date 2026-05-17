@@ -129,7 +129,7 @@ if 'ekstra_kuranlar' not in st.session_state: st.session_state['ekstra_kuranlar'
 
 def menuyu_degistir(yeni_isim): st.session_state['secili_menu'] = yeni_isim
 
-# --- ZİKİRMATİK MODÜLÜ (Kurşun Geçirmez CSS İzolasyonu) ---
+# --- ZİKİRMATİK MODÜLÜ (Kurşun Geçirmez Efsane Tasarım) ---
 def zikirmatik_bileseni(anahtar="ana"):
     st.markdown("<div class='bilgi-kutusu'><h3 style='color:#1e7145; margin-top:0px;'>🔢 Zikirmatik</h3><p style='color:gray; font-size:14px; margin-bottom:0px;'>Hedefe ulaştığınızda sayaç sıfırlanır ve alt kısımda attığınız tur sayısı belirtilir.</p></div>", unsafe_allow_html=True)
     
@@ -152,38 +152,43 @@ def zikirmatik_bileseni(anahtar="ana"):
     tur = st.session_state['zikirmatik_tur']
     yuzde = int((sayac / hedef) * 100) if hedef > 0 else 0
     
-    # CSS'in bozulmaması için Zikirmatik Butonunu özel bir konteyner içine hapsediyoruz.
-    with st.container():
-        st.markdown(f'<div class="zikirmatik-alani-{anahtar}"></div>', unsafe_allow_html=True)
-        st.markdown(f"""
-        <style>
-            div[data-testid="stVerticalBlock"]:has(.zikirmatik-alani-{anahtar}) button[kind="primary"] {{
-                border-radius: 50% !important; width: 260px !important; height: 260px !important; 
-                color: #0b5345 !important; background: linear-gradient(to top, #a3e4d7 {yuzde}%, #ffffff {yuzde}%) !important; 
-                border: 8px solid #ffffff !important; outline: 5px dashed #45b39d !important; outline-offset: 4px !important;
-                box-shadow: 0 15px 35px rgba(46,139,87,0.3), inset 0 10px 20px rgba(0,0,0,0.05) !important; 
-                transition: transform 0.05s !important; margin: 30px auto !important; display: flex !important; 
-                align-items: center !important; justify-content: center !important; text-align: center !important;
-            }}
-            div[data-testid="stVerticalBlock"]:has(.zikirmatik-alani-{anahtar}) button[kind="primary"]:active {{ transform: scale(0.94) !important; }}
-            div[data-testid="stVerticalBlock"]:has(.zikirmatik-alani-{anahtar}) button[kind="primary"] p {{ 
-                font-size: 38px !important; font-weight: 900 !important; color: #0b5345 !important; line-height: 1.1 !important;
-            }}
-        </style>
-        """, unsafe_allow_html=True)
-        
-        col_s1, col_center, col_s2 = st.columns([1, 2, 1])
-        with col_center:
-            btn_icerik = f"👆 {sayac} / {hedef}"
-            if tur > 0: btn_icerik += f"\n⭐ {tur}"
-                
-            if st.button(btn_icerik, key=f"z_btn_{anahtar}", use_container_width=True):
-                st.session_state['zikirmatik_sayac'] += 1
-                if st.session_state['zikirmatik_sayac'] >= hedef:
-                    st.toast(f"Tebrikler! {hedef} Barajı Geçildi.", icon="🎉")
-                    st.session_state['zikirmatik_sayac'] = 0
-                    st.session_state['zikirmatik_tur'] += 1 
-                st.rerun()
+    # CSS: Canlı Sunucuda Asla Bozulmayan Özel Hedefleyici
+    st.markdown(f"""
+    <style>
+        div[data-testid="stElementContainer"]:has(.z-anchor-{anahtar}) + div[data-testid="stElementContainer"] button[kind="primary"],
+        div.element-container:has(.z-anchor-{anahtar}) + div.element-container button[kind="primary"] {{
+            border-radius: 50% !important; width: 270px !important; height: 270px !important; 
+            color: #0b5345 !important; background: linear-gradient(to top, #a3e4d7 {yuzde}%, #ffffff {yuzde}%) !important; 
+            border: 8px solid #ffffff !important; outline: 5px dashed #45b39d !important; outline-offset: 4px !important;
+            box-shadow: 0 15px 35px rgba(46,139,87,0.3), inset 0 10px 20px rgba(0,0,0,0.05) !important; 
+            transition: transform 0.05s !important; margin: 30px auto !important; display: flex !important; 
+            align-items: center !important; justify-content: center !important; text-align: center !important;
+        }}
+        div[data-testid="stElementContainer"]:has(.z-anchor-{anahtar}) + div[data-testid="stElementContainer"] button[kind="primary"]:active,
+        div.element-container:has(.z-anchor-{anahtar}) + div.element-container button[kind="primary"]:active {{ 
+            transform: scale(0.94) !important; 
+        }}
+        div[data-testid="stElementContainer"]:has(.z-anchor-{anahtar}) + div[data-testid="stElementContainer"] button[kind="primary"] p,
+        div.element-container:has(.z-anchor-{anahtar}) + div.element-container button[kind="primary"] p {{ 
+            font-size: 40px !important; font-weight: 900 !important; color: #0b5345 !important; 
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8) !important; line-height: 1.2 !important;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+    
+    col_s1, col_center, col_s2 = st.columns([1, 2, 1])
+    with col_center:
+        st.markdown(f'<div class="z-anchor-{anahtar}"></div>', unsafe_allow_html=True)
+        btn_icerik = f"👆 {sayac} / {hedef}"
+        if tur > 0: btn_icerik += f"\n⭐ {tur}"
+            
+        if st.button(btn_icerik, key=f"z_btn_{anahtar}", use_container_width=True):
+            st.session_state['zikirmatik_sayac'] += 1
+            if st.session_state['zikirmatik_sayac'] >= hedef:
+                st.toast(f"Tebrikler! {hedef} Barajı Geçildi.", icon="🎉")
+                st.session_state['zikirmatik_sayac'] = 0
+                st.session_state['zikirmatik_tur'] += 1 
+            st.rerun()
 
 # --- DİNAMİK HATİM MOTORU ---
 def dinamik_hatim_olusturucu(modul_baslik, ikon, state_key, ornek_hedef):
@@ -502,7 +507,6 @@ else:
             try:
                 response = supabase.table("hatim_listesi").select("*").order("cuz_no").execute()
                 
-                # ANA KURAN İPTAL KONSOLU
                 st.markdown("### 🛠️ Hatim Yönetim ve Düzenleme Konsolu")
                 with st.expander("📖 Alınan Ana Kuran Cüzlerini İptal Et / Boşa Çıkar"):
                     dolu_cuzler = [c for c in response.data if c["durum"] == "dolu"]
@@ -516,7 +520,6 @@ else:
                             st.rerun()
                     else: st.info("Şu an kimse cüz almamış.")
                     
-                # DİNAMİK GRUPLAR DÜZENLEME KONSOLU
                 with st.expander("📑 Açılmış İbadet Gruplarını Düzenle / Gizle / Sil"):
                     kat_haritasi = {
                         '🕌 Yasin Grubu': 'yasin_listesi', '🕋 İhlas Grubu': 'ihlas_listesi',
