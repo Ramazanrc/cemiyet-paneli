@@ -129,7 +129,7 @@ if 'ekstra_kuranlar' not in st.session_state: st.session_state['ekstra_kuranlar'
 
 def menuyu_degistir(yeni_isim): st.session_state['secili_menu'] = yeni_isim
 
-# --- ZİKİRMATİK MODÜLÜ ---
+# --- ZİKİRMATİK MODÜLÜ (Kurşun Geçirmez CSS İzolasyonu) ---
 def zikirmatik_bileseni(anahtar="ana"):
     st.markdown("<div class='bilgi-kutusu'><h3 style='color:#1e7145; margin-top:0px;'>🔢 Zikirmatik</h3><p style='color:gray; font-size:14px; margin-bottom:0px;'>Hedefe ulaştığınızda sayaç sıfırlanır ve alt kısımda attığınız tur sayısı belirtilir.</p></div>", unsafe_allow_html=True)
     
@@ -152,36 +152,38 @@ def zikirmatik_bileseni(anahtar="ana"):
     tur = st.session_state['zikirmatik_tur']
     yuzde = int((sayac / hedef) * 100) if hedef > 0 else 0
     
-    st.markdown(f"""
-    <div class="z-anchor-{anahtar}"></div>
-    <style>
-        div.element-container:has(.z-anchor-{anahtar}) + div.element-container button {{
-            border-radius: 50% !important; width: 260px !important; height: 260px !important; 
-            color: #0b5345 !important; background: linear-gradient(to top, #a3e4d7 {yuzde}%, #ffffff {yuzde}%) !important; 
-            border: 8px solid #ffffff !important; outline: 5px dashed #45b39d !important; outline-offset: 4px !important;
-            box-shadow: 0 15px 35px rgba(46,139,87,0.3), inset 0 10px 20px rgba(0,0,0,0.05) !important; 
-            transition: transform 0.05s !important; margin: 30px auto !important; display: flex !important; 
-            align-items: center !important; justify-content: center !important; text-align: center !important;
-        }}
-        div.element-container:has(.z-anchor-{anahtar}) + div.element-container button:active {{ transform: scale(0.94) !important; }}
-        div.element-container:has(.z-anchor-{anahtar}) + div.element-container button p {{ 
-            font-size: 38px !important; font-weight: 900 !important; color: #0b5345 !important; line-height: 1.1 !important;
-        }}
-    </style>
-    """, unsafe_allow_html=True)
-    
-    col_s1, col_center, col_s2 = st.columns([1, 2, 1])
-    with col_center:
-        btn_icerik = f"👆 {sayac} / {hedef}"
-        if tur > 0: btn_icerik += f"\n⭐ {tur}"
-            
-        if st.button(btn_icerik, key=f"z_btn_{anahtar}", use_container_width=True):
-            st.session_state['zikirmatik_sayac'] += 1
-            if st.session_state['zikirmatik_sayac'] >= hedef:
-                st.toast(f"Tebrikler! {hedef} Barajı Geçildi.", icon="🎉")
-                st.session_state['zikirmatik_sayac'] = 0
-                st.session_state['zikirmatik_tur'] += 1 
-            st.rerun()
+    # CSS'in bozulmaması için Zikirmatik Butonunu özel bir konteyner içine hapsediyoruz.
+    with st.container():
+        st.markdown(f'<div class="zikirmatik-alani-{anahtar}"></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <style>
+            div[data-testid="stVerticalBlock"]:has(.zikirmatik-alani-{anahtar}) button[kind="primary"] {{
+                border-radius: 50% !important; width: 260px !important; height: 260px !important; 
+                color: #0b5345 !important; background: linear-gradient(to top, #a3e4d7 {yuzde}%, #ffffff {yuzde}%) !important; 
+                border: 8px solid #ffffff !important; outline: 5px dashed #45b39d !important; outline-offset: 4px !important;
+                box-shadow: 0 15px 35px rgba(46,139,87,0.3), inset 0 10px 20px rgba(0,0,0,0.05) !important; 
+                transition: transform 0.05s !important; margin: 30px auto !important; display: flex !important; 
+                align-items: center !important; justify-content: center !important; text-align: center !important;
+            }}
+            div[data-testid="stVerticalBlock"]:has(.zikirmatik-alani-{anahtar}) button[kind="primary"]:active {{ transform: scale(0.94) !important; }}
+            div[data-testid="stVerticalBlock"]:has(.zikirmatik-alani-{anahtar}) button[kind="primary"] p {{ 
+                font-size: 38px !important; font-weight: 900 !important; color: #0b5345 !important; line-height: 1.1 !important;
+            }}
+        </style>
+        """, unsafe_allow_html=True)
+        
+        col_s1, col_center, col_s2 = st.columns([1, 2, 1])
+        with col_center:
+            btn_icerik = f"👆 {sayac} / {hedef}"
+            if tur > 0: btn_icerik += f"\n⭐ {tur}"
+                
+            if st.button(btn_icerik, key=f"z_btn_{anahtar}", use_container_width=True):
+                st.session_state['zikirmatik_sayac'] += 1
+                if st.session_state['zikirmatik_sayac'] >= hedef:
+                    st.toast(f"Tebrikler! {hedef} Barajı Geçildi.", icon="🎉")
+                    st.session_state['zikirmatik_sayac'] = 0
+                    st.session_state['zikirmatik_tur'] += 1 
+                st.rerun()
 
 # --- DİNAMİK HATİM MOTORU ---
 def dinamik_hatim_olusturucu(modul_baslik, ikon, state_key, ornek_hedef):
@@ -249,7 +251,7 @@ def dinamik_hatim_olusturucu(modul_baslik, ikon, state_key, ornek_hedef):
                     st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
 
-# --- 1. ADIM: ŞİFRE EKRANI (İpucu şifreler kaldırıldı) ---
+# --- 1. ADIM: ŞİFRE EKRANI ---
 if not st.session_state['giris_yapildi']:
     st.markdown("<br><br><h1 style='text-align: center; color: #1e7145; font-size: 2.8rem; font-weight: 900;'>🌿 Cemiyet Paneli</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: #5a7d66;'>Lütfen topluluk giriş şifresini giriniz.</p>", unsafe_allow_html=True)
@@ -290,36 +292,39 @@ else:
     # --- KURAN HATMİ ---
     if menu == "📖 Kuran-ı Kerim Hatmi":
         st.markdown(f"<div class='bilgi-kutusu'><h3 style='color: #1e7145; font-weight: 800; margin-top:0px;'>📖 Ana Kuran Hatmi (Veritabanı)</h3></div>", unsafe_allow_html=True)
-        response = supabase.table("hatim_listesi").select("*").order("cuz_no").execute()
-        cuzler = response.data
-        toplam_cuz = 30
-        alinan_cuz = sum(1 for cuz in cuzler if cuz["durum"] == "dolu")
-        yuzde = int((alinan_cuz / toplam_cuz) * 100) if toplam_cuz > 0 else 0
+        try:
+            response = supabase.table("hatim_listesi").select("*").order("cuz_no").execute()
+            cuzler = response.data
+            toplam_cuz = 30
+            alinan_cuz = sum(1 for cuz in cuzler if cuz["durum"] == "dolu")
+            yuzde = int((alinan_cuz / toplam_cuz) * 100) if toplam_cuz > 0 else 0
 
-        bg_color = "#f0fdf4" if alinan_cuz == 30 else "#ffffff"
-        border_color = "#4ade80" if alinan_cuz == 30 else "#eaf3ed"
-        
-        st.markdown(f"<div style='background-color:{bg_color}; border:2px solid {border_color}; border-radius:15px; padding:15px; margin-bottom:15px;'>", unsafe_allow_html=True)
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Toplam", "30")
-        col2.metric("Alınan", str(alinan_cuz))
-        col3.metric("Kalan", str(toplam_cuz - alinan_cuz))
-        st.progress(yuzde)
-        if alinan_cuz == 30: st.success("✅ Merkezi Kuran Hatmi Tamamlanmıştır!")
-        st.markdown("<br>", unsafe_allow_html=True)
+            bg_color = "#f0fdf4" if alinan_cuz == 30 else "#ffffff"
+            border_color = "#4ade80" if alinan_cuz == 30 else "#eaf3ed"
+            
+            st.markdown(f"<div style='background-color:{bg_color}; border:2px solid {border_color}; border-radius:15px; padding:15px; margin-bottom:15px;'>", unsafe_allow_html=True)
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Toplam", "30")
+            col2.metric("Alınan", str(alinan_cuz))
+            col3.metric("Kalan", str(toplam_cuz - alinan_cuz))
+            st.progress(yuzde)
+            if alinan_cuz == 30: st.success("✅ Merkezi Kuran Hatmi Tamamlanmıştır!")
+            st.markdown("<br>", unsafe_allow_html=True)
 
-        sutunlar = st.columns(5)
-        for cuz in cuzler:
-            i = cuz["cuz_no"]
-            durum = cuz["durum"]
-            alan_kisi = cuz["kullanici_adi"]
-            with sutunlar[(i-1) % 5]:
-                if durum == "dolu": st.button(f"Cüz {i}\n({alan_kisi})", key=f"c_{i}", disabled=True, use_container_width=True)
-                else:
-                    if st.button(f"Cüz {i}", key=f"c_{i}", use_container_width=True):
-                        supabase.table("hatim_listesi").update({"durum": "dolu", "kullanici_adi": st.session_state['kullanici_adi']}).eq("cuz_no", i).execute()
-                        st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+            sutunlar = st.columns(5)
+            for cuz in cuzler:
+                i = cuz["cuz_no"]
+                durum = cuz["durum"]
+                alan_kisi = cuz["kullanici_adi"]
+                with sutunlar[(i-1) % 5]:
+                    if durum == "dolu": st.button(f"Cüz {i}\n({alan_kisi})", key=f"c_{i}", disabled=True, use_container_width=True)
+                    else:
+                        if st.button(f"Cüz {i}", key=f"c_{i}", use_container_width=True):
+                            supabase.table("hatim_listesi").update({"durum": "dolu", "kullanici_adi": st.session_state['kullanici_adi']}).eq("cuz_no", i).execute()
+                            st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+        except Exception as e:
+            st.error("⚠️ Veritabanı uyku modunda! Lütfen Supabase panelinizden 'Restore' butonuna basarak veritabanını uyandırın.")
 
         st.markdown("<br><h3 style='color:#1e7145;'>📑 Yeni Kuran Hatmi Grupları</h3>", unsafe_allow_html=True)
         with st.expander("➕ Yeni Kuran Hatmi Başlat"):
@@ -385,7 +390,7 @@ else:
                 else:
                     if st.button(f"📖 {bolum}", key=f"cev_{i}", use_container_width=True): st.toast(f"{bolum} alındı!", icon="✅")
 
-    # --- ÇETELE (Mobil Uyumlu Flexbox Çözümü - İstek 3) ---
+    # --- ÇETELE ---
     elif menu == "📝 Çetele":
         col_tarih1, col_tarih2 = st.columns([1, 2])
         with col_tarih2:
@@ -405,7 +410,6 @@ else:
                     st.session_state['cetele_modu'] = 'detay'; st.rerun()
             st.markdown("<hr style='margin-top:0px;'>", unsafe_allow_html=True)
 
-            # MOBİLDE ASLA KIRILMAYAN ÖZEL HTML SATIR YAPISI
             for baslik, veriler in st.session_state['cetele'].items():
                 yuzde = int((veriler['okunan'] / veriler['hedef']) * 100) if veriler['hedef'] > 0 else 0
                 st.markdown(f"""
@@ -485,7 +489,7 @@ else:
     elif menu == "🔢 Zikirmatik":
         zikirmatik_bileseni("ana")
 
-    # --- KAPSAMLI MODERATÖR PANELİ (Yönetim Yetkileri - İstek 1 & 2) ---
+    # --- MODERATÖR PANELİ ---
     elif menu == "👑 Moderatör Paneli":
         st.header("👑 Yönetici Kontrol Paneli")
         if not st.session_state['admin_yetkisi']:
@@ -495,77 +499,77 @@ else:
                 else: st.error("Yetkisiz giriş!")
         else:
             st.success("Yönetici girişi onaylandı.")
-            response = supabase.table("hatim_listesi").select("*").order("cuz_no").execute()
-            
-            # --- MÜDAHALE VE DÜZELTME ALANI (İstek 1 & 2) ---
-            st.markdown("### 🛠️ Hatim Yönetim ve Düzenleme Konsolu")
-            
-            # 1. Ana Kuran Dağılımını İptal Etme
-            with st.expander("📖 Alınan Ana Kuran Cüzlerini İptal Et / Boşa Çıkar"):
-                dolu_cuzler = [c for c in response.data if c["durum"] == "dolu"]
-                if dolu_cuzler:
-                    cuz_secenekleri = {f"Cüz {c['cuz_no']} - {c['kullanici_adi']}": c['cuz_no'] for c in dolu_cuzler}
-                    secilen_cuz = st.selectbox("İptal etmek istediğiniz cüzü seçin:", list(cuz_secenekleri.keys()))
-                    if st.button("❌ Seçilen Cüz Kaydını Sil / Sıfırla", type="primary"):
-                        c_no = cuz_secenekleri[secilen_cuz]
-                        supabase.table("hatim_listesi").update({"durum": "bos", "kullanici_adi": ""}).eq("cuz_no", c_no).execute()
-                        st.toast(f"Cüz {c_no} başarıyla sıfırlandı!", icon="✅")
-                        st.rerun()
-                else: st.info("Şu an kimse cüz almamış.")
+            try:
+                response = supabase.table("hatim_listesi").select("*").order("cuz_no").execute()
+                
+                # ANA KURAN İPTAL KONSOLU
+                st.markdown("### 🛠️ Hatim Yönetim ve Düzenleme Konsolu")
+                with st.expander("📖 Alınan Ana Kuran Cüzlerini İptal Et / Boşa Çıkar"):
+                    dolu_cuzler = [c for c in response.data if c["durum"] == "dolu"]
+                    if dolu_cuzler:
+                        cuz_secenekleri = {f"{c['cuz_no']}. Cüz ({c['kullanici_adi']})": c['cuz_no'] for c in dolu_cuzler}
+                        secilen_cuz = st.selectbox("İptal etmek istediğiniz cüzü seçin:", list(cuz_secenekleri.keys()))
+                        if st.button("❌ Seçilen Cüz Kaydını Sil / Sıfırla", type="primary"):
+                            c_no = cuz_secenekleri[secilen_cuz]
+                            supabase.table("hatim_listesi").update({"durum": "bos", "kullanici_adi": ""}).eq("cuz_no", c_no).execute()
+                            st.toast(f"{c_no}. Cüz başarıyla sıfırlandı!", icon="✅")
+                            st.rerun()
+                    else: st.info("Şu an kimse cüz almamış.")
+                    
+                # DİNAMİK GRUPLAR DÜZENLEME KONSOLU
+                with st.expander("📑 Açılmış İbadet Gruplarını Düzenle / Gizle / Sil"):
+                    kat_haritasi = {
+                        '🕌 Yasin Grubu': 'yasin_listesi', '🕋 İhlas Grubu': 'ihlas_listesi',
+                        '📿 Salavat Grubu': 'salavat_listesi', '🤲 Zikir Grubu': 'zikir_listesi',
+                        '📖 Ekstra Kuran Grubu': 'ekstra_kuranlar'
+                    }
+                    for k_adi, s_key in kat_haritasi.items():
+                        st.markdown(f"**{k_adi}**")
+                        if not st.session_state[s_key]: st.caption("Bu kategoride açılmış grup yok.")
+                        for d_idx, h_item in enumerate(st.session_state[s_key]):
+                            st.markdown(f"<div class='cetele-karti' style='padding:10px;'>", unsafe_allow_html=True)
+                            m_c1, m_c2, m_c3, m_c4 = st.columns([2, 1, 1, 1])
+                            
+                            okunan_sayisi = h_item.get('okunan', sum(1 for v in h_item.get('cuzler', {}).values() if v != ""))
+                            m_c1.write(f"**{h_item['baslik']}**\n({okunan_sayisi}/{h_item.get('hedef', 30)})")
+                            
+                            if 'okunan' in h_item:
+                                y_okunan = m_c2.number_input("Sayıyı Düzenle", min_value=0, value=int(h_item['okunan']), key=f"med_{s_key}_{d_idx}", label_visibility="collapsed")
+                                if y_okunan != h_item['okunan']:
+                                    st.session_state[s_key][d_idx]['okunan'] = y_okunan; st.rerun()
+                            
+                            if h_item.get('aktif', True):
+                                if m_c3.button("👁️ Gizle", key=f"mgiz_{s_key}_{d_idx}", use_container_width=True):
+                                    st.session_state[s_key][d_idx]['aktif'] = False; st.rerun()
+                            else:
+                                if m_c3.button("👁️ Göster", key=f"mgos_{s_key}_{d_idx}", use_container_width=True):
+                                    st.session_state[s_key][d_idx]['aktif'] = True; st.rerun()
+                            
+                            if m_c4.button("❌ Sil", key=f"msil_{s_key}_{d_idx}", use_container_width=True):
+                                st.session_state[s_key].pop(d_idx); st.rerun()
+                            st.markdown("</div>", unsafe_allow_html=True)
 
-            # 2. Dinamik Hatimleri Düzenleme, Gizleme ve Silme
-            with st.expander("📑 Açılmış İbadet Gruplarını Düzenle / Gizle / Sil"):
-                kat_haritasi = {
-                    '🕌 Yasin Grubu': 'yasin_listesi', '🕋 İhlas Grubu': 'ihlas_listesi',
-                    '📿 Salavat Grubu': 'salavat_listesi', '🤲 Zikir Grubu': 'zikir_listesi',
-                    '📖 Ekstra Kuran Grubu': 'ekstra_kuranlar'
-                }
-                for k_adi, s_key in kat_haritasi.items():
-                    st.markdown(f"**{k_adi}**")
-                    if not st.session_state[s_key]: st.caption("Bu kategoride açılmış grup yok.")
-                    for d_idx, h_item in enumerate(st.session_state[s_key]):
-                        st.markdown(f"<div class='cetele-karti' style='padding:10px;'>", unsafe_allow_html=True)
-                        m_c1, m_c2, m_c3, m_c4 = st.columns([2, 1, 1, 1])
-                        
-                        m_c1.write(f"**{h_item['baslik']}**\n({h_item['okunan']}/{h_item.get('hedef', 30)})")
-                        
-                        # Sayı Düzenleme Yetkisi
-                        y_okunan = m_c2.number_input("Sayıyı Düzenle", min_value=0, value=int(h_item['okunan']), key=f"med_{s_key}_{d_idx}", label_visibility="collapsed")
-                        if y_okunan != h_item['okunan']:
-                            st.session_state[s_key][d_idx]['okunan'] = y_okunan; st.rerun()
-                        
-                        # Pasife Alma / Gizleme Özelliği
-                        if h_item.get('aktif', True):
-                            if m_c3.button("👁️ Gizle", key=f"mgiz_{s_key}_{d_idx}", use_container_width=True):
-                                st.session_state[s_key][d_idx]['aktif'] = False; st.rerun()
-                        else:
-                            if m_c3.button("👁️ Göster", key=f"mgos_{s_key}_{d_idx}", use_container_width=True):
-                                st.session_state[s_key][d_idx]['aktif'] = True; st.rerun()
-                        
-                        # Kampanyayı Tamamen Silme
-                        if m_c4.button("❌ Sil", key=f"msil_{s_key}_{d_idx}", use_container_width=True):
-                            st.session_state[s_key].pop(d_idx); st.rerun()
-                        st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown("---")
+                st.markdown("### 📊 Genel İzleme Tablosu")
+                kullanici_ozetleri = {}
+                for cuz in response.data:
+                    kisi = cuz["kullanici_adi"]
+                    if cuz["durum"] == "dolu" and kisi:
+                        if kisi not in kullanici_ozetleri: kullanici_ozetleri[kisi] = {"Kuran": [], "Yasin": "-", "İhlas": "-", "Salavat": "-", "Zikir": "-", "Cevşen": "-"}
+                        kullanici_ozetleri[kisi]["Kuran"].append(str(cuz["cuz_no"]))
+                
+                if st.session_state['kullanici_adi'] in kullanici_ozetleri:
+                    kullanici_ozetleri[st.session_state['kullanici_adi']]["Yasin"] = "1 Adet"; kullanici_ozetleri[st.session_state['kullanici_adi']]["İhlas"] = "1.000"; kullanici_ozetleri[st.session_state['kullanici_adi']]["Salavat"] = "500"
 
-            st.markdown("---")
-            st.markdown("### 📊 Genel İzleme Tablosu")
-            kullanici_ozetleri = {}
-            for cuz in response.data:
-                kisi = cuz["kullanici_adi"]
-                if cuz["durum"] == "dolu" and kisi:
-                    if kisi not in kullanici_ozetleri: kullanici_ozetleri[kisi] = {"Kuran": [], "Yasin": "-", "İhlas": "-", "Salavat": "-", "Zikir": "-", "Cevşen": "-"}
-                    kullanici_ozetleri[kisi]["Kuran"].append(str(cuz["cuz_no"]))
-            
-            if st.session_state['kullanici_adi'] in kullanici_ozetleri:
-                kullanici_ozetleri[st.session_state['kullanici_adi']]["Yasin"] = "1 Adet"; kullanici_ozetleri[st.session_state['kullanici_adi']]["İhlas"] = "1.000"; kullanici_ozetleri[st.session_state['kullanici_adi']]["Salavat"] = "500"
-
-            tablo_verisi = [{"👤 İsim": k, "📖 Kuran": ", ".join(v["Kuran"]), "🕌 Yasin": v["Yasin"], "🕋 İhlas": v["İhlas"], "📿 Salavat": v["Salavat"]} for k, v in kullanici_ozetleri.items()]
-            if tablo_verisi: st.dataframe(tablo_verisi, use_container_width=True, hide_index=True)
-            else: st.info("Henüz aktif cüz dağılımı yok.")
-            
-            if st.button("🔄 Tüm Ana Kuran Cüzlerini Sıfırla", use_container_width=True):
-                supabase.table("hatim_listesi").update({"durum": "bos", "kullanici_adi": ""}).neq("cuz_no", 0).execute()
-                st.toast("Listesi sıfırlandı!", icon="✅"); st.rerun()
+                tablo_verisi = [{"👤 İsim": k, "📖 Kuran": ", ".join(v["Kuran"]), "🕌 Yasin": v["Yasin"], "🕋 İhlas": v["İhlas"], "📿 Salavat": v["Salavat"]} for k, v in kullanici_ozetleri.items()]
+                if tablo_verisi: st.dataframe(tablo_verisi, use_container_width=True, hide_index=True)
+                else: st.info("Henüz aktif cüz dağılımı yok.")
+                
+                if st.button("🔄 Tüm Ana Kuran Cüzlerini Sıfırla", use_container_width=True):
+                    supabase.table("hatim_listesi").update({"durum": "bos", "kullanici_adi": ""}).neq("cuz_no", 0).execute()
+                    st.toast("Listesi sıfırlandı!", icon="✅"); st.rerun()
+            except Exception as e:
+                st.error("⚠️ Lütfen Supabase veritabanını aktif edin (Uyandırın).")
 
     # --- ÇIKIŞ ---
     st.sidebar.markdown("<br><br>", unsafe_allow_html=True)
