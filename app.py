@@ -129,8 +129,7 @@ if 'ekstra_kuranlar' not in st.session_state: st.session_state['ekstra_kuranlar'
 
 def menuyu_degistir(yeni_isim): st.session_state['secili_menu'] = yeni_isim
 
-# --- ZİKİRMATİK MODÜLÜ (Sıfır Gecikme - Fragment Mimarisi) ---
-@st.experimental_fragment
+# --- ZİKİRMATİK MODÜLÜ (Hata Giderildi - Stabil Versiyon) ---
 def zikirmatik_bileseni(anahtar="ana"):
     st.markdown("<div class='bilgi-kutusu'><h3 style='color:#1e7145; margin-top:0px;'>🔢 Zikirmatik</h3><p style='color:gray; font-size:14px; margin-bottom:0px;'>Hedefe ulaştığınızda sayaç sıfırlanır ve alt kısımda attığınız tur sayısı belirtilir.</p></div>", unsafe_allow_html=True)
     
@@ -140,11 +139,13 @@ def zikirmatik_bileseni(anahtar="ana"):
         yeni_hedef = st.number_input("", min_value=1, value=st.session_state['zikirmatik_hedef'], step=50, key=f"z_hedef_{anahtar}", label_visibility="collapsed")
         if yeni_hedef != st.session_state['zikirmatik_hedef']: 
             st.session_state['zikirmatik_hedef'] = yeni_hedef
+            st.rerun()
     with col2:
         st.markdown("<div style='margin-top:24px;'></div>", unsafe_allow_html=True)
         if st.button("🔄 Sayacı Sıfırla", key=f"z_sifirla_{anahtar}", use_container_width=True): 
             st.session_state['zikirmatik_sayac'] = 0
             st.session_state['zikirmatik_tur'] = 0 
+            st.rerun()
     
     hedef = st.session_state['zikirmatik_hedef']
     sayac = st.session_state['zikirmatik_sayac']
@@ -186,6 +187,7 @@ def zikirmatik_bileseni(anahtar="ana"):
                 st.toast(f"Tebrikler! {hedef} Barajı Geçildi.", icon="🎉")
                 st.session_state['zikirmatik_sayac'] = 0
                 st.session_state['zikirmatik_tur'] += 1 
+            st.rerun()
 
 # --- DİNAMİK HATİM MOTORU ---
 def dinamik_hatim_olusturucu(modul_baslik, ikon, state_key, ornek_hedef):
@@ -304,7 +306,6 @@ else:
             bg_color = "#f0fdf4" if alinan_cuz == 30 else "#ffffff"
             border_color = "#4ade80" if alinan_cuz == 30 else "#eaf3ed"
             
-            # Mobil Uyumlu Yan Yana Metrikler
             st.markdown(f"""
             <div style="display: flex; justify-content: space-around; background-color: {bg_color}; padding: 15px; border-radius: 12px; border: 2px solid {border_color}; margin-bottom: 20px;">
                 <div style="text-align: center;"><div style="color: gray; font-size: 14px; font-weight: bold;">Toplam</div><div style="color: #1e7145; font-size: 24px; font-weight: 900;">30</div></div>
@@ -317,7 +318,6 @@ else:
             if alinan_cuz == 30: st.success("✅ Merkezi Kuran Hatmi Tamamlanmıştır!")
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Mobilde Cüzlerin Sıralı İnmesi İçin Özel Satır (Row) Mantığı
             for satir in range(6):
                 sutunlar = st.columns(5)
                 for sutun in range(5):
@@ -368,7 +368,6 @@ else:
                 st.progress(ek_yuzde)
                 st.markdown("<br>", unsafe_allow_html=True)
                 
-                # Mobilde Sıralı İnmesi İçin Row Mantığı (Ekstra Gruplar)
                 for satir in range(6):
                     ek_cols = st.columns(5)
                     for sutun in range(5):
