@@ -129,7 +129,8 @@ if 'ekstra_kuranlar' not in st.session_state: st.session_state['ekstra_kuranlar'
 
 def menuyu_degistir(yeni_isim): st.session_state['secili_menu'] = yeni_isim
 
-# --- ZİKİRMATİK MODÜLÜ (Efsanevi Tasarım Kesin Çözüm) ---
+# --- ZİKİRMATİK MODÜLÜ (Sıfır Gecikme - Fragment Mimarisi) ---
+@st.experimental_fragment
 def zikirmatik_bileseni(anahtar="ana"):
     st.markdown("<div class='bilgi-kutusu'><h3 style='color:#1e7145; margin-top:0px;'>🔢 Zikirmatik</h3><p style='color:gray; font-size:14px; margin-bottom:0px;'>Hedefe ulaştığınızda sayaç sıfırlanır ve alt kısımda attığınız tur sayısı belirtilir.</p></div>", unsafe_allow_html=True)
     
@@ -139,20 +140,17 @@ def zikirmatik_bileseni(anahtar="ana"):
         yeni_hedef = st.number_input("", min_value=1, value=st.session_state['zikirmatik_hedef'], step=50, key=f"z_hedef_{anahtar}", label_visibility="collapsed")
         if yeni_hedef != st.session_state['zikirmatik_hedef']: 
             st.session_state['zikirmatik_hedef'] = yeni_hedef
-            st.rerun()
     with col2:
         st.markdown("<div style='margin-top:24px;'></div>", unsafe_allow_html=True)
         if st.button("🔄 Sayacı Sıfırla", key=f"z_sifirla_{anahtar}", use_container_width=True): 
             st.session_state['zikirmatik_sayac'] = 0
             st.session_state['zikirmatik_tur'] = 0 
-            st.rerun()
     
     hedef = st.session_state['zikirmatik_hedef']
     sayac = st.session_state['zikirmatik_sayac']
     tur = st.session_state['zikirmatik_tur']
     yuzde = int((sayac / hedef) * 100) if hedef > 0 else 0
     
-    # CSS: Hatanın sebebi olan eksik bağlantı giderildi
     st.markdown(f"""
     <style>
         div[data-testid="stElementContainer"]:has(.z-anchor-{anahtar}) + div[data-testid="stElementContainer"] button[kind="primary"],
@@ -178,20 +176,16 @@ def zikirmatik_bileseni(anahtar="ana"):
     
     col_s1, col_center, col_s2 = st.columns([1, 2, 1])
     with col_center:
-        # 1. Zırhı taşıyan HTML çapasını yerleştiriyoruz
         st.markdown(f'<div class="z-anchor-{anahtar}"></div>', unsafe_allow_html=True)
-        
         btn_icerik = f"👆 {sayac} / {hedef}"
         if tur > 0: btn_icerik += f"\n⭐ {tur}"
             
-        # 2. HATA BURADAYDI! Butonun kimliğini "primary" yapmayı unuttuğum için CSS işlemiyordu. Düzeltildi!
         if st.button(btn_icerik, key=f"z_btn_{anahtar}", type="primary", use_container_width=True):
             st.session_state['zikirmatik_sayac'] += 1
             if st.session_state['zikirmatik_sayac'] >= hedef:
                 st.toast(f"Tebrikler! {hedef} Barajı Geçildi.", icon="🎉")
                 st.session_state['zikirmatik_sayac'] = 0
                 st.session_state['zikirmatik_tur'] += 1 
-            st.rerun()
 
 # --- DİNAMİK HATİM MOTORU ---
 def dinamik_hatim_olusturucu(modul_baslik, ikon, state_key, ornek_hedef):
@@ -310,26 +304,35 @@ else:
             bg_color = "#f0fdf4" if alinan_cuz == 30 else "#ffffff"
             border_color = "#4ade80" if alinan_cuz == 30 else "#eaf3ed"
             
-            st.markdown(f"<div style='background-color:{bg_color}; border:2px solid {border_color}; border-radius:15px; padding:15px; margin-bottom:15px;'>", unsafe_allow_html=True)
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Toplam", "30")
-            col2.metric("Alınan", str(alinan_cuz))
-            col3.metric("Kalan", str(toplam_cuz - alinan_cuz))
+            # Mobil Uyumlu Yan Yana Metrikler
+            st.markdown(f"""
+            <div style="display: flex; justify-content: space-around; background-color: {bg_color}; padding: 15px; border-radius: 12px; border: 2px solid {border_color}; margin-bottom: 20px;">
+                <div style="text-align: center;"><div style="color: gray; font-size: 14px; font-weight: bold;">Toplam</div><div style="color: #1e7145; font-size: 24px; font-weight: 900;">30</div></div>
+                <div style="text-align: center;"><div style="color: gray; font-size: 14px; font-weight: bold;">Alınan</div><div style="color: #1e7145; font-size: 24px; font-weight: 900;">{alinan_cuz}</div></div>
+                <div style="text-align: center;"><div style="color: gray; font-size: 14px; font-weight: bold;">Kalan</div><div style="color: #1e7145; font-size: 24px; font-weight: 900;">{toplam_cuz - alinan_cuz}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+            
             st.progress(yuzde)
             if alinan_cuz == 30: st.success("✅ Merkezi Kuran Hatmi Tamamlanmıştır!")
             st.markdown("<br>", unsafe_allow_html=True)
 
-            sutunlar = st.columns(5)
-            for cuz in cuzler:
-                i = cuz["cuz_no"]
-                durum = cuz["durum"]
-                alan_kisi = cuz["kullanici_adi"]
-                with sutunlar[(i-1) % 5]:
-                    if durum == "dolu": st.button(f"Cüz {i}\n({alan_kisi})", key=f"c_{i}", disabled=True, use_container_width=True)
-                    else:
-                        if st.button(f"Cüz {i}", key=f"c_{i}", use_container_width=True):
-                            supabase.table("hatim_listesi").update({"durum": "dolu", "kullanici_adi": st.session_state['kullanici_adi']}).eq("cuz_no", i).execute()
-                            st.rerun()
+            # Mobilde Cüzlerin Sıralı İnmesi İçin Özel Satır (Row) Mantığı
+            for satir in range(6):
+                sutunlar = st.columns(5)
+                for sutun in range(5):
+                    cuz_idx = (satir * 5) + sutun
+                    if cuz_idx < len(cuzler):
+                        cuz = cuzler[cuz_idx]
+                        i = cuz["cuz_no"]
+                        durum = cuz["durum"]
+                        alan_kisi = cuz["kullanici_adi"]
+                        with sutunlar[sutun]:
+                            if durum == "dolu": st.button(f"Cüz {i}\n({alan_kisi})", key=f"c_{i}", disabled=True, use_container_width=True)
+                            else:
+                                if st.button(f"Cüz {i}", key=f"c_{i}", use_container_width=True):
+                                    supabase.table("hatim_listesi").update({"durum": "dolu", "kullanici_adi": st.session_state['kullanici_adi']}).eq("cuz_no", i).execute()
+                                    st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
         except Exception as e:
             st.error("⚠️ Veritabanı uyku modunda! Lütfen Supabase panelinizden 'Restore' butonuna basarak veritabanını uyandırın.")
@@ -364,14 +367,20 @@ else:
                 
                 st.progress(ek_yuzde)
                 st.markdown("<br>", unsafe_allow_html=True)
-                ek_cols = st.columns(5)
-                for c in range(1, 31):
-                    alan = ek['cuzler'][str(c)]
-                    with ek_cols[(c-1) % 5]:
-                        if alan != "": st.button(f"Cüz {c}\n({alan})", key=f"ek_{ek['id']}_{c}", type="primary", use_container_width=True)
-                        else:
-                            if st.button(f"Cüz {c}", key=f"ek_{ek['id']}_{c}", use_container_width=True):
-                                ek['cuzler'][str(c)] = st.session_state['kullanici_adi']; st.rerun()
+                
+                # Mobilde Sıralı İnmesi İçin Row Mantığı (Ekstra Gruplar)
+                for satir in range(6):
+                    ek_cols = st.columns(5)
+                    for sutun in range(5):
+                        c_no = (satir * 5) + sutun + 1
+                        if c_no <= 30:
+                            alan = ek['cuzler'][str(c_no)]
+                            with ek_cols[sutun]:
+                                if alan != "": st.button(f"Cüz {c_no}\n({alan})", key=f"ek_{ek['id']}_{c_no}", type="primary", use_container_width=True)
+                                else:
+                                    if st.button(f"Cüz {c_no}", key=f"ek_{ek['id']}_{c_no}", use_container_width=True):
+                                        ek['cuzler'][str(c_no)] = st.session_state['kullanici_adi']; st.rerun()
+                                        
                 if ek_alinan == 30:
                     if st.button("🗂️ Arşive Taşı", key=f"arsiv_ek_{ek['id']}", type="primary", use_container_width=True):
                         ek['aktif'] = False; st.rerun()
